@@ -1,0 +1,842 @@
+/*
+ * Layout follows TensorFlow Playground and GAN Lab: the first screen is the
+ * whole tool (a thin strip, a control bar, then columns in the order data flows,
+ * each with its own settings under its chart). Below the tool comes the
+ * comparison of every rule, then reading material in one centered column.
+ *
+ * Color is reserved for data: three class colors and one for malicious clients.
+ */
+:root {
+  color-scheme: light;
+  --page: #f1f3f5;
+  --sheet: #ffffff;
+  --ink: #1b2330;
+  --ink-2: #4b5565;
+  --ink-3: #7d8796;
+  --rule: #dde1e6;
+  --class-0: #2f6fd6;
+  --class-1: #c98a00;
+  --class-2: #16a085;
+  --malicious: #b0124f;
+  --font: "Atkinson Hyperlegible Next", "PingFang SC", "Microsoft YaHei", "Noto Sans SC", system-ui, sans-serif;
+  --content: 1560px;
+  /* Charts shrink on short screens so the tool still fits in one screen. */
+  --chart: clamp(190px, calc(100vh - 650px), 380px);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--sheet);
+  color: var(--ink);
+  font: 400 15px/1.5 var(--font);
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+  text-underline-offset: 3px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  line-height: 1.25;
+}
+
+p {
+  margin: 0;
+}
+
+.note {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--ink-2);
+}
+
+/* --- Buttons ---------------------------------------------------------------- */
+
+button {
+  font: inherit;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: 6px 14px;
+  cursor: pointer;
+}
+
+button:hover {
+  border-color: var(--ink-3);
+}
+
+button.primary {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--sheet);
+  font-weight: 600;
+}
+
+button.quiet {
+  padding-inline: 0;
+  border-color: transparent;
+  color: var(--ink-2);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Two or three mutually exclusive buttons, like the language switch. */
+.segmented {
+  display: flex;
+  padding: 2px;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: var(--sheet);
+}
+
+.segmented button {
+  border: 0;
+  border-radius: 6px;
+  padding: 3px 10px;
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+.segmented button[aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--sheet);
+  font-weight: 600;
+}
+
+/* --- Strip and control bar ------------------------------------------------------- */
+
+.strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 6px 24px;
+  background: var(--ink);
+  color: #d5dae1;
+  font-size: 13px;
+}
+
+.strip-links {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.strip a {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.strip .segmented {
+  background: transparent;
+  border-color: #3a4556;
+}
+
+.strip .segmented button {
+  color: #c3cad4;
+}
+
+.strip .segmented button[aria-pressed="true"] {
+  background: #ffffff;
+  color: var(--ink);
+}
+
+.controlbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 40px;
+  padding: 12px 24px;
+  background: var(--sheet);
+  border-bottom: 1px solid var(--rule);
+}
+
+.controlbar h1 {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.transport {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.transport svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+.icon-button {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 50%;
+}
+
+.icon-button svg {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+#step svg {
+  fill: var(--ink);
+  stroke: none;
+}
+
+.play {
+  display: grid;
+  place-items: center;
+  width: 50px;
+  height: 50px;
+  padding: 0;
+  border-radius: 50%;
+  border-color: var(--ink);
+  background: var(--ink);
+}
+
+.play:hover {
+  background: #2c3647;
+}
+
+.play svg {
+  width: 24px;
+  height: 24px;
+  fill: var(--sheet);
+}
+
+.play .icon-pause,
+.play.playing .icon-play {
+  display: none;
+}
+
+.play.playing .icon-pause {
+  display: block;
+}
+
+.readout {
+  display: flex;
+  gap: 32px;
+  margin: 0;
+}
+
+.readout dt {
+  font-size: 12px;
+  color: var(--ink-3);
+}
+
+.readout dd {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+#share {
+  margin-left: auto;
+  font-size: 14px;
+}
+
+/* --- Workbench: data → clients → server → global model ------------------------------ */
+
+main {
+  background: var(--sheet);
+}
+
+.workbench {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0;
+  display: grid;
+  grid-template-columns: minmax(240px, 0.75fr) repeat(3, minmax(0, 1fr));
+  background: var(--page);
+  border-bottom: 1px solid var(--rule);
+}
+
+.column {
+  position: relative;
+  min-width: 0;
+  padding: 26px 22px 22px;
+}
+
+.column + .column {
+  border-left: 1px solid var(--rule);
+}
+
+/* The track: a node per column, joined by a line to the next one. */
+.column::before {
+  content: "";
+  position: absolute;
+  top: 18px;
+  left: 22px;
+  right: 0;
+  height: 2px;
+  background: var(--rule);
+}
+
+.column + .column::before {
+  left: 0;
+}
+
+.column::after {
+  content: "";
+  position: absolute;
+  top: 14px;
+  left: 22px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--ink);
+}
+
+.column:last-child::before {
+  right: 22px;
+}
+
+.column h2 {
+  margin-top: 12px;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.column-note {
+  margin: 1px 0 14px;
+  font-size: 13px;
+  color: var(--ink-3);
+}
+
+.chart {
+  margin: 0;
+}
+
+.chart-box {
+  max-width: var(--chart);
+}
+
+/* The client strip is wide and short, so it can use the full column. */
+#client-strip {
+  max-width: none;
+}
+
+.chart canvas {
+  display: block;
+}
+
+.chart figcaption,
+.chart > .note {
+  margin-top: 8px;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 12px;
+  margin-top: 8px;
+  font-size: 12.5px;
+  color: var(--ink-2);
+}
+
+.legend .note {
+  flex-basis: 100%;
+  margin-top: 4px;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+#update-readout {
+  margin-top: 6px;
+}
+
+#boundary-caption {
+  max-width: var(--chart);
+}
+
+/* --- Settings inside the columns ------------------------------------------------------ */
+
+.column-controls {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--rule);
+}
+
+.column h3 {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+#training-title {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--rule);
+}
+
+fieldset {
+  border: 0;
+  margin: 0 0 14px;
+  padding: 0;
+  min-width: 0;
+}
+
+legend,
+.field label {
+  padding: 0;
+  margin-bottom: 4px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.field {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  margin-bottom: 10px;
+}
+
+.field output {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+.field input {
+  grid-column: 1 / -1;
+  width: 100%;
+  margin: 2px 0 0;
+  accent-color: var(--ink);
+}
+
+.field + .note {
+  margin: -4px 0 12px;
+}
+
+.choice {
+  margin-bottom: 12px;
+}
+
+.choice .note {
+  margin-top: 6px;
+}
+
+select {
+  width: 100%;
+  font: inherit;
+  font-weight: 600;
+  color: var(--ink);
+  padding: 6px 34px 6px 10px;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: var(--sheet)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%234b5565' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+    no-repeat right 12px center;
+  appearance: none;
+  cursor: pointer;
+}
+
+select:hover {
+  border-color: var(--ink-3);
+}
+
+.dataset-row {
+  display: flex;
+  gap: 8px;
+}
+
+.dataset-row label {
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+  font-size: 12px;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+
+.dataset-row input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.dataset-row canvas {
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: var(--sheet);
+}
+
+.dataset-row label:hover canvas {
+  border-color: var(--ink-3);
+}
+
+.dataset-row input:checked ~ canvas {
+  outline: 2px solid var(--ink);
+  outline-offset: -1px;
+}
+
+.dataset-row input:checked ~ span {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.dataset-row input:focus-visible ~ canvas {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+/* --- Every rule, same setup ------------------------------------------------------------ */
+
+.band {
+  padding: 16px 24px 20px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.band-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 16px;
+  margin-bottom: 12px;
+}
+
+.band-head h2 {
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.band-head .note {
+  flex: 1 1 320px;
+}
+
+.rule-grid {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.rule-cell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: 2px;
+  padding: 8px 10px 10px;
+  text-align: left;
+  border-radius: 8px;
+}
+
+.rule-cell[aria-pressed="true"] {
+  border-color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--ink);
+}
+
+.rule-cell.stale {
+  opacity: 0.45;
+}
+
+/* Names take two lines at most, so values and charts line up across cells. */
+.rule-name {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  min-height: calc(2 * 1.3em);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--ink-2);
+}
+
+.rule-value {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.spark {
+  display: block;
+  margin-top: 4px;
+}
+
+.spark canvas {
+  display: block;
+}
+
+/* --- Article: reading material in one centered column ------------------------------------- */
+
+.article {
+  padding: 56px 24px 64px;
+}
+
+.article > section,
+.article > footer {
+  max-width: 720px;
+  margin-inline: auto;
+}
+
+.article > section + section {
+  margin-top: 64px;
+}
+
+.article h2 {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 12px;
+}
+
+.article h3 {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 28px 0 8px;
+}
+
+.article p {
+  font-size: 17px;
+  line-height: 1.7;
+  color: var(--ink-2);
+}
+
+.article p + p {
+  margin-top: 12px;
+}
+
+.article .note {
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+#sweep-note {
+  margin-bottom: 20px;
+}
+
+/* Scenarios read as a numbered list: they build on each other. */
+.scenario-list {
+  list-style: none;
+  margin: 24px 0 0;
+  padding: 0;
+  counter-reset: scenario;
+  border-top: 1px solid var(--rule);
+}
+
+.scenario-list li {
+  counter-increment: scenario;
+  border-bottom: 1px solid var(--rule);
+}
+
+.scenario {
+  position: relative;
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  padding: 16px 12px 16px 44px;
+  text-align: left;
+  border: 0;
+  border-radius: 0;
+}
+
+.scenario::before {
+  content: counter(scenario);
+  position: absolute;
+  left: 12px;
+  top: 16px;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--ink-3);
+}
+
+.scenario:hover {
+  background: var(--page);
+}
+
+.scenario strong {
+  font-size: 17px;
+}
+
+.scenario span {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+
+.scenario[aria-current="true"] {
+  box-shadow: inset 3px 0 0 var(--ink);
+}
+
+.sweep-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  margin-bottom: 14px;
+}
+
+.segmented-label {
+  font-weight: 600;
+}
+
+.sweep-status {
+  margin: 0;
+}
+
+.sweep-toolbar .quiet {
+  margin-left: auto;
+}
+
+.article .sweep-axis {
+  margin-top: 10px;
+  font-size: 13px;
+}
+
+.article .rule-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.credits {
+  margin-top: 64px;
+  padding-top: 20px;
+  border-top: 1px solid var(--rule);
+  font-size: 14px;
+  color: var(--ink-3);
+}
+
+/* --- Tooltip ----------------------------------------------------------------------------- */
+
+.tooltip {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 10;
+  display: grid;
+  gap: 2px;
+  max-width: 280px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--ink);
+  color: var(--sheet);
+  font-size: 13px;
+  line-height: 1.35;
+  pointer-events: none;
+}
+
+.tooltip[hidden] {
+  display: none;
+}
+
+.tooltip span {
+  color: #c9cfd8;
+}
+
+/* --- Smaller screens ------------------------------------------------------------------------ */
+
+@media (max-width: 1279px) {
+  .rule-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1099px) {
+  :root {
+    --chart: 100%;
+  }
+
+  .workbench {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .column:nth-child(3) {
+    border-left: 0;
+  }
+
+  .column:nth-child(n + 3) {
+    border-top: 1px solid var(--rule);
+  }
+
+  .column:nth-child(2)::before {
+    right: 22px;
+  }
+
+  .column:nth-child(3)::before {
+    left: 22px;
+  }
+}
+
+@media (max-width: 720px) {
+  .strip,
+  .controlbar,
+  .band,
+  .article {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .strip > p {
+    display: none;
+  }
+
+  .strip {
+    justify-content: flex-end;
+  }
+
+  .controlbar {
+    gap: 12px 24px;
+  }
+
+  #share {
+    margin-left: 0;
+  }
+
+  .workbench {
+    grid-template-columns: 1fr;
+  }
+
+  .column + .column {
+    border-left: 0;
+    border-top: 1px solid var(--rule);
+  }
+
+  .column::before,
+  .column + .column::before {
+    left: 22px;
+    right: 22px;
+  }
+
+  .rule-grid,
+  .article .rule-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .article h2 {
+    font-size: 24px;
+  }
+
+  .article p {
+    font-size: 16px;
+  }
+}

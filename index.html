@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>FL Poison Playground</title>
+    <meta
+      name="description"
+      data-i18n="description"
+      data-i18n-attr="content"
+      content="Poisoning attacks and robust aggregation in federated learning, running in your browser. See why defenses break on Non-IID data."
+    />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <!-- Link previews (GitHub, X, WeChat). Crawlers do not run scripts, so these stay in English. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="FL Poison Playground" />
+    <meta
+      property="og:description"
+      content="Poisoning attacks and robust aggregation in federated learning, running in your browser."
+    />
+    <meta property="og:url" content="https://calvin1989.github.io/fl-poison-playground/" />
+    <meta property="og:image" content="https://calvin1989.github.io/fl-poison-playground/og.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+  </head>
+  <body>
+    <!-- Text marked with data-i18n is filled from src/ui/i18n.ts; the English here is the no-script fallback. -->
+
+    <!-- 1. The tool: everything needed to run an experiment, in the first screen. -->
+    <div class="strip">
+      <p data-i18n="tagline">Poisoning attacks and robust aggregation in federated learning, in your browser</p>
+      <div class="strip-links">
+        <div class="segmented" role="group" id="lang-switch"></div>
+        <a href="https://github.com/Calvin1989/fl-poison-playground">GitHub</a>
+      </div>
+    </div>
+
+    <header class="controlbar">
+      <h1>FL Poison Playground</h1>
+      <div class="transport">
+        <button type="button" class="icon-button" id="reset">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12a7 7 0 1 0 2.05-4.95M5 4v4h4" /></svg>
+        </button>
+        <button type="button" class="play" id="play">
+          <svg class="icon-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z" /></svg>
+          <svg class="icon-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z" /></svg>
+        </button>
+        <button type="button" class="icon-button" id="step">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5.5v13l9-6.5zM16.5 5.5h2v13h-2z" /></svg>
+        </button>
+      </div>
+      <dl class="readout">
+        <div><dt data-i18n="round">Round</dt><dd id="round">0</dd></div>
+        <div><dt data-i18n="testAccuracy">Test accuracy</dt><dd id="accuracy">–</dd></div>
+        <div><dt data-i18n="cleanFedAvg">Clean FedAvg</dt><dd id="reference">–</dd></div>
+      </dl>
+      <button type="button" class="quiet" id="share">Copy link</button>
+    </header>
+
+    <main>
+      <ol class="workbench" aria-label="Simulation">
+        <li class="column column-data">
+          <h2 data-i18n="stageData">Data</h2>
+          <p class="column-note" data-i18n="stageDataNote">Which data, split how?</p>
+          <div id="data-controls"></div>
+        </li>
+        <li class="column">
+          <h2 data-i18n="stageClients">Clients</h2>
+          <p class="column-note" data-i18n="stageClientsNote">Each trains locally. Some are malicious.</p>
+          <figure class="chart">
+            <div class="chart-box" id="client-strip"></div>
+            <figcaption id="client-legend" class="legend"></figcaption>
+          </figure>
+          <div class="column-controls" id="attack-controls"></div>
+        </li>
+        <li class="column">
+          <h2 data-i18n="stageServer">Server</h2>
+          <p class="column-note" data-i18n="stageServerNote">Combines the updates into one.</p>
+          <figure class="chart">
+            <div class="chart-box" id="update-map"></div>
+            <figcaption>
+              <div id="update-legend" class="legend"></div>
+              <p class="note" id="update-readout"></p>
+            </figcaption>
+          </figure>
+          <div class="column-controls" id="rule-controls"></div>
+        </li>
+        <li class="column">
+          <h2 data-i18n="stageModel">Global model</h2>
+          <p class="column-note" data-i18n="stageModelNote">What everyone gets back.</p>
+          <figure class="chart">
+            <div class="chart-box" id="boundary"></div>
+            <figcaption class="note" id="boundary-caption"></figcaption>
+          </figure>
+        </li>
+      </ol>
+
+      <section class="band" aria-labelledby="compare-title">
+        <div class="band-head">
+          <h2 id="compare-title" data-i18n="compareTitle">Every rule, same setup</h2>
+          <p class="note" data-i18n="compareNote">Same clients, same attackers, one run per rule.</p>
+          <button type="button" class="quiet" id="compare-csv" data-i18n="downloadCsv">Download CSV</button>
+        </div>
+        <div id="rule-comparison" class="rule-grid"></div>
+      </section>
+
+      <!-- 2. The article: reading material, in one centered column below the tool. -->
+      <article class="article">
+        <section aria-labelledby="scenarios-title">
+          <h2 id="scenarios-title" data-i18n="scenariosTitle">Try these</h2>
+          <p data-i18n="scenariosIntro">Each one loads a setup and starts it.</p>
+          <ol id="scenario-list" class="scenario-list"></ol>
+        </section>
+
+        <section aria-labelledby="sweep-title">
+          <h2 id="sweep-title" data-i18n="sweepTitle">Sweep one setting</h2>
+          <p id="sweep-note"></p>
+          <div id="sweep-panel"></div>
+        </section>
+
+        <section aria-labelledby="reading-title">
+          <h2 id="reading-title" data-i18n="readingTitle">How to read it</h2>
+          <h3 data-i18n="mapTitle">The update map</h3>
+          <p data-i18n="mapText">Every client's update is a point.</p>
+          <p data-i18n="mapHollow">Hollow points are clients the rule gave almost no weight to.</p>
+          <h3 data-i18n="noniidTitle">Why Non-IID matters</h3>
+          <p data-i18n="noniidText">Robust rules assume honest updates agree with each other.</p>
+          <h3 data-i18n="referenceTitle">The clean reference</h3>
+          <p data-i18n="referenceText">The grey line is plain FedAvg with nobody attacking.</p>
+        </section>
+
+        <footer class="credits" id="credits"></footer>
+      </article>
+    </main>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
