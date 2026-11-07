@@ -43,8 +43,8 @@ function start(): void {
     downloadCsv(`accuracy-by-round-${app.experiment.round}.csv`, [header, ...formatted]);
   });
 
-  bindText($("sweep-note"), () => t().sweepNote(SWEEP_ROUNDS));
   new SweepPanel($("sweep-panel"), app);
+  buildBandMode();
 
   buildTransport(app);
   buildScenarios(app);
@@ -199,17 +199,38 @@ function buildTransport(app: App): void {
   });
 }
 
+/** Round by round, or a sweep: two views of every rule in the same band. */
+function buildBandMode(): void {
+  const group = $("band-mode");
+  bindText(group, () => t().modeLabel, "aria-label");
+  const buttons = [...group.querySelectorAll<HTMLButtonElement>("button")];
+  let mode = "rounds";
+  const sync = () => {
+    buttons.forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.mode === mode)));
+    $("rule-comparison").hidden = mode !== "rounds";
+    $("compare-csv").hidden = mode !== "rounds";
+    $("sweep-panel").hidden = mode !== "sweep";
+    $("band-note").textContent = mode === "rounds" ? t().compareNote : t().sweepNote(SWEEP_ROUNDS);
+  };
+  buttons.forEach((b) =>
+    b.addEventListener("click", () => {
+      mode = b.dataset.mode!;
+      sync();
+    }),
+  );
+  onLanguageChange(sync);
+  sync();
+}
+
+/** Ready-made setups, listed under the data settings they change. */
 function buildScenarios(app: App): void {
   const list = $("scenario-list");
+  const text = $("scenario-text");
   const buttons = SCENARIOS.map((scenario) => {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "scenario";
-    const title = document.createElement("strong");
-    bindText(title, () => tr(scenario.title));
-    const text = document.createElement("span");
-    bindText(text, () => tr(scenario.text));
-    button.append(title, text);
+    bindText(button, () => tr(scenario.title));
     const item = document.createElement("li");
     item.append(button);
     // Picking a scenario is an explicit request, so it starts right away.
@@ -217,14 +238,17 @@ function buildScenarios(app: App): void {
       app.setConfig(scenario.config);
       app.reset();
       app.play();
-      window.scrollTo({ top: 0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
     });
     list.append(item);
     return { button, scenario };
   });
 
-  app.onConfig((config) => {
-    const current = toHash(config);
-    buttons.forEach(({ button, scenario }) => button.setAttribute("aria-current", String(toHash(scenario.config) === current)));
-  });
+  const sync = () => {
+    const current = toHash(app.config);
+    const active = SCENARIOS.find((s) => toHash(s.config) === current);
+    buttons.forEach(({ button, scenario }) => button.setAttribute("aria-current", String(scenario === active)));
+    text.textContent = active ? tr(active.text) : t().scenariosHint;
+  };
+  app.onConfig(sync);
+  onLanguageChange(sync);
 }

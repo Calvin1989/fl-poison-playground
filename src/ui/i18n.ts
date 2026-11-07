@@ -12,7 +12,6 @@ const pct = (v: number, digits = 1) => `${(v * 100).toFixed(digits)}%`;
 const en = {
   description:
     "Poisoning attacks and robust aggregation in federated learning, running in your browser. See why defenses break on Non-IID data.",
-  lede: "Some clients in federated learning lie about their updates. Pick an attack, pick a defense, and watch the global model hold or break. Everything runs in your browser.",
   tagline: "Poisoning attacks and robust aggregation in federated learning, in your browser",
   language: "Language",
 
@@ -29,7 +28,7 @@ const en = {
   cleanFedAvg: "Clean FedAvg",
 
   stageData: "Data",
-  stageDataNote: "Which data, and how it is split.",
+  stageDataNote: "Robust rules assume honest clients agree. Non-IID data breaks that.",
   stageClients: "Clients",
   stageClientsNote: "Each trains locally. Some are malicious.",
   stageServer: "Server",
@@ -73,15 +72,17 @@ const en = {
   seriesValue: (name: string, v: number) => `${name}: ${pct(v)}`,
 
   compareTitle: "Every rule, same setup",
-  compareNote: "Same clients and attackers, one run per rule. Black: test accuracy by round. Grey: clean FedAvg. Click a rule to inspect it above.",
+  compareNote: "Same clients and attackers, one run per rule. Black: test accuracy by round. Grey: clean FedAvg. Click a rule to show it above.",
   compareLabel: (rule: string) => `Test accuracy of ${rule} per round`,
 
   downloadCsv: "Download CSV",
 
-  sweepTitle: "Sweep one setting",
+  modeLabel: "Compare by",
+  modeRounds: "Round by round",
+  modeSweep: "Sweep a setting",
 
   sweepNote: (rounds: number) =>
-    `Runs every rule at each value of one setting, keeping everything else as set above. Each point is the mean test accuracy over the last 10 of ${rounds} rounds. The grey line is clean FedAvg.`,
+    `Every rule at each value of one setting, everything else as set above. Each point: mean test accuracy over the last 10 of ${rounds} rounds. Grey: clean FedAvg.`,
   sweepVary: "Vary",
   sweepRun: "Run sweep",
   sweepStop: "Stop",
@@ -95,19 +96,10 @@ const en = {
   sweepAxis: (setting: string, values: string[]) =>
     `${setting}, left to right: ${values.join(" → ")}. The number in each box is at ${values[values.length - 1]}.`,
 
-  scenariosTitle: "Try these",
-  scenariosIntro: "Each one loads a ready-made setup and starts it. Watch the update map and the comparison as it runs.",
-  readingTitle: "How to read it",
-  mapTitle: "The update map",
-  mapText:
-    "Every client's update is a point. The ring is the average of the honest clients, which is what the server should apply. The cross is what it actually applied. The map is turned so the cross always sits to the right of the ring, and the line between them is the true distance: the longer it is, the more the attackers steered this round.",
-  mapHollow: "Hollow points are clients the rule gave almost no weight to.",
-  noniidTitle: "Why Non-IID matters",
-  noniidText:
-    "Robust rules like Median and Krum assume honest updates agree with each other. When every client sees mostly one class, honest updates point in different directions, and attackers can sit inside that spread without looking unusual. Drag the Non-IID slider and watch the honest cloud open up.",
-  referenceTitle: "The clean reference",
-  referenceText:
-    "The grey line in the accuracy charts is plain FedAvg on the same clients with nobody attacking. The gap between it and your run is the damage done by the attack, by the defense, or by both.",
+  scenariosTitle: "Try a scenario",
+  scenariosHint: "Each one loads a setup and starts it.",
+  mapHint:
+    "The ring is what the server should apply: the honest average. The cross is what it applied. The longer the line, the further the attackers pushed it this round.",
   credits:
     'Inspired by <a href="https://playground.tensorflow.org">TensorFlow Playground</a>. MIT licensed. <a href="https://github.com/Calvin1989/fl-poison-playground#add-your-own-defense">Add your own defense</a>.',
 };
@@ -116,7 +108,6 @@ export type Messages = typeof en;
 
 const zh: Messages = {
   description: "在浏览器里运行的联邦学习投毒攻击与鲁棒聚合演示。看看防御方法为什么会在 Non-IID 数据上失效。",
-  lede: "联邦学习里，有些客户端会在更新上撒谎。选一种攻击、选一种防御，看全局模型是守住了还是崩了。所有计算都在你的浏览器里完成。",
   tagline: "在浏览器里演示联邦学习的投毒攻击与鲁棒聚合",
   language: "语言",
 
@@ -133,7 +124,7 @@ const zh: Messages = {
   cleanFedAvg: "无攻击 FedAvg",
 
   stageData: "数据",
-  stageDataNote: "用什么数据，怎么分给客户端。",
+  stageDataNote: "鲁棒规则默认诚实客户端彼此一致，Non-IID 会打破这一点。",
   stageClients: "客户端",
   stageClientsNote: "各自本地训练，其中一些是恶意的。",
   stageServer: "服务器",
@@ -182,10 +173,12 @@ const zh: Messages = {
 
   downloadCsv: "下载 CSV",
 
-  sweepTitle: "敏感性扫描",
+  modeLabel: "对比方式",
+  modeRounds: "按轮次",
+  modeSweep: "敏感性扫描",
 
   sweepNote: (rounds) =>
-    `让一个设置依次取不同的值，每个值下所有规则各跑一次，其余设置保持上面的选择。每个点是 ${rounds} 轮中最后 10 轮的平均测试准确率。灰线是无攻击的 FedAvg。`,
+    `让一个设置依次取不同的值，每个值下所有规则各跑一次，其余设置保持上面的选择。每个点是 ${rounds} 轮里最后 10 轮的平均测试准确率，灰线是无攻击的 FedAvg。`,
   sweepVary: "扫描",
   sweepRun: "开始扫描",
   sweepStop: "停止",
@@ -196,21 +189,11 @@ const zh: Messages = {
   sweepStale: "上面的设置已经改过了，重新扫描才会更新结果。",
   sweepLabel: (rule) => `${rule} 在扫描中的准确率`,
   sweepPoint: (setting, value) => `${setting}：${value}`,
-  sweepAxis: (setting, values) => `${setting}从左到右：${values.join(" → ")}。每个格子右上角的数字是取 ${values[values.length - 1]} 时的结果。`,
+  sweepAxis: (setting, values) => `${setting}从左到右：${values.join(" → ")}。每个格子里的数字是取 ${values[values.length - 1]} 时的结果。`,
 
-  scenariosTitle: "可以试试",
-  scenariosIntro: "每个场景会载入一组设置并开始运行。运行时可以留意更新分布图和下方的规则对比。",
-  readingTitle: "怎么看这些图",
-  mapTitle: "更新分布图",
-  mapText:
-    "每个客户端的更新是一个点。圆圈是诚实客户端的平均值，也就是服务器本该采用的更新；叉号是服务器实际采用的更新。图会旋转到让叉号总在圆圈右边，两者之间的线段就是真实距离：线越长，说明攻击者这一轮把模型带偏得越多。",
-  mapHollow: "空心的点，表示聚合规则几乎没给它权重。",
-  noniidTitle: "为什么 Non-IID 很关键",
-  noniidText:
-    "Median、Krum 这类鲁棒规则都假设诚实更新彼此相近。当每个客户端大多只看到一个类别时，诚实更新会指向不同方向，攻击者藏在这片分散的点里也不显眼。拖动 Non-IID 滑块，可以看到诚实更新慢慢散开。",
-  referenceTitle: "无攻击参照",
-  referenceText:
-    "准确率图里的灰线，是同一批客户端在没有攻击时用普通 FedAvg 训练的结果。它和你这次运行之间的差距，就是攻击、防御或两者一起造成的损失。",
+  scenariosTitle: "试试这些场景",
+  scenariosHint: "点一个场景，会载入对应设置并开始运行。",
+  mapHint: "圆圈是服务器本该采用的更新，也就是诚实均值；叉号是它实际采用的更新。两者之间的线越长，说明攻击者这一轮把模型推得越远。",
   credits:
     '灵感来自 <a href="https://playground.tensorflow.org">TensorFlow Playground</a>。MIT 协议。<a href="https://github.com/Calvin1989/fl-poison-playground/blob/main/README.zh-CN.md#添加你自己的防御方法">添加你自己的防御方法</a>。',
 };

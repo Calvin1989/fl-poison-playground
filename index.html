@@ -60,7 +60,7 @@
       <ol class="workbench" aria-label="Simulation">
         <li class="column column-data">
           <h2 data-i18n="stageData">Data</h2>
-          <p class="column-note" data-i18n="stageDataNote">Which data, split how?</p>
+          <p class="column-note" data-i18n="stageDataNote">Robust rules assume honest clients agree.</p>
           <div id="data-controls"></div>
         </li>
         <li class="column">
@@ -79,6 +79,7 @@
             <div class="chart-box" id="update-map"></div>
             <figcaption>
               <div id="update-legend" class="legend"></div>
+              <p class="note map-hint" data-i18n="mapHint">The ring is the honest average; the cross is what the server applied.</p>
               <p class="note" id="update-readout"></p>
             </figcaption>
           </figure>
@@ -91,45 +92,30 @@
             <div class="chart-box" id="boundary"></div>
             <figcaption class="note" id="boundary-caption"></figcaption>
           </figure>
+          <section class="column-controls" aria-labelledby="scenarios-title">
+            <h3 id="scenarios-title" data-i18n="scenariosTitle">Try a scenario</h3>
+            <ol id="scenario-list" class="scenario-list"></ol>
+            <p class="note" id="scenario-text"></p>
+          </section>
         </li>
       </ol>
 
+      <!-- Every rule side by side, either round by round or across one setting. -->
       <section class="band" aria-labelledby="compare-title">
         <div class="band-head">
           <h2 id="compare-title" data-i18n="compareTitle">Every rule, same setup</h2>
-          <p class="note" data-i18n="compareNote">Same clients, same attackers, one run per rule.</p>
+          <p class="note" id="band-note"></p>
+          <div class="segmented" role="group" id="band-mode">
+            <button type="button" data-mode="rounds" data-i18n="modeRounds">Round by round</button>
+            <button type="button" data-mode="sweep" data-i18n="modeSweep">Sweep a setting</button>
+          </div>
           <button type="button" class="quiet" id="compare-csv" data-i18n="downloadCsv">Download CSV</button>
         </div>
         <div id="rule-comparison" class="rule-grid"></div>
+        <div id="sweep-panel" hidden></div>
       </section>
 
-      <!-- 2. The article: reading material, in one centered column below the tool. -->
-      <article class="article">
-        <section aria-labelledby="scenarios-title">
-          <h2 id="scenarios-title" data-i18n="scenariosTitle">Try these</h2>
-          <p data-i18n="scenariosIntro">Each one loads a setup and starts it.</p>
-          <ol id="scenario-list" class="scenario-list"></ol>
-        </section>
-
-        <section aria-labelledby="sweep-title">
-          <h2 id="sweep-title" data-i18n="sweepTitle">Sweep one setting</h2>
-          <p id="sweep-note"></p>
-          <div id="sweep-panel"></div>
-        </section>
-
-        <section aria-labelledby="reading-title">
-          <h2 id="reading-title" data-i18n="readingTitle">How to read it</h2>
-          <h3 data-i18n="mapTitle">The update map</h3>
-          <p data-i18n="mapText">Every client's update is a point.</p>
-          <p data-i18n="mapHollow">Hollow points are clients the rule gave almost no weight to.</p>
-          <h3 data-i18n="noniidTitle">Why Non-IID matters</h3>
-          <p data-i18n="noniidText">Robust rules assume honest updates agree with each other.</p>
-          <h3 data-i18n="referenceTitle">The clean reference</h3>
-          <p data-i18n="referenceText">The grey line is plain FedAvg with nobody attacking.</p>
-        </section>
-
-        <footer class="credits" id="credits"></footer>
-      </article>
+      <footer class="credits" id="credits"></footer>
     </main>
 
     <script type="module" src="/src/main.ts"></script>
